@@ -1,0 +1,230 @@
+{
+  "info": {
+    "_postman_id": "5dd2ec95-9a5a-4cb6-b1eb-342e29c56475",
+    "name": "UrbanSDK Traffic API",
+    "description": "Postman collection for the UrbanSDK FastAPI traffic microservice.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Aggregates - List",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "const data = pm.response.json();",
+              "if (Array.isArray(data) && data.length > 0 && data[0].link_id) {",
+              "  pm.collectionVariables.set(\"linkId\", data[0].link_id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/aggregates/?day={{day}}&period={{period}}&limit={{limit}}&offset={{offset}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "aggregates",
+            ""
+          ],
+          "query": [
+            {
+              "key": "day",
+              "value": "{{day}}"
+            },
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            },
+            {
+              "key": "offset",
+              "value": "{{offset}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Aggregates - Link Detail",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200 or 404\", function () {",
+              "  pm.expect([200, 404]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/aggregates/{{linkId}}?day={{day}}&period={{period}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "aggregates",
+            "{{linkId}}"
+          ],
+          "query": [
+            {
+              "key": "day",
+              "value": "{{day}}"
+            },
+            {
+              "key": "period",
+              "value": "{{period}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Aggregates - Spatial Filter",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"day\": \"{{day}}\",\n  \"period\": \"{{period}}\",\n  \"bbox\": [-81.8, 30.1, -81.6, 30.3]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/aggregates/spatial_filter/?limit={{limit}}&offset={{offset}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "aggregates",
+            "spatial_filter",
+            ""
+          ],
+          "query": [
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            },
+            {
+              "key": "offset",
+              "value": "{{offset}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Patterns - Slow Links",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/patterns/slow_links/?period={{period}}&threshold={{threshold}}&min_days={{minDays}}&limit={{limit}}&offset={{offset}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "patterns",
+            "slow_links",
+            ""
+          ],
+          "query": [
+            {
+              "key": "period",
+              "value": "{{period}}"
+            },
+            {
+              "key": "threshold",
+              "value": "{{threshold}}"
+            },
+            {
+              "key": "min_days",
+              "value": "{{minDays}}"
+            },
+            {
+              "key": "limit",
+              "value": "{{limit}}"
+            },
+            {
+              "key": "offset",
+              "value": "{{offset}}"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "day",
+      "value": "Monday"
+    },
+    {
+      "key": "period",
+      "value": "AM Peak"
+    },
+    {
+      "key": "limit",
+      "value": "100"
+    },
+    {
+      "key": "offset",
+      "value": "0"
+    },
+    {
+      "key": "linkId",
+      "value": "12345"
+    },
+    {
+      "key": "threshold",
+      "value": "30.0"
+    },
+    {
+      "key": "minDays",
+      "value": "3"
+    }
+  ]
+}
