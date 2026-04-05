@@ -49,4 +49,5 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements.txt -r requirements.local.txt
-      - run: pytest tests/ --ignore=tests/integration -q
+      - name: Run unit tests with coverage gate
+        run: pytest tests/ --ignore=tests/integration --cov=app --cov-report=term-missing --cov-fail-under=100 -q
