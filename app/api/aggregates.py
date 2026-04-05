@@ -11,8 +11,6 @@ from app.schemas import LinkAggregate, LinkDetail, SpatialFilterRequest
 
 router = APIRouter(prefix="/aggregates", tags=["aggregates"])
 
-_LINK_LENGTH = ST_Length(cast(Link.geometry, type_=None), True).label("length_m")
-
 
 def _time_filter(dow: int, start, end):
     """Build SQLAlchemy filter conditions for day-of-week and time window."""
