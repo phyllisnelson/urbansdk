@@ -1,4 +1,10 @@
-.PHONY: run build up down restart logs migrate ingest shell test unit-tests integration-tests coverage lint format notebook install
+.PHONY: run build up down restart logs migrate ingest data-download shell test unit-tests integration-tests coverage lint format notebook install
+
+DATA_DIR := tests/data
+LINK_INFO_URL := https://cdn.urbansdk.com/data-engineering-interview/link_info.parquet.gz
+SPEED_DATA_URL := https://cdn.urbansdk.com/data-engineering-interview/duval_jan1_2024.parquet.gz
+LINK_INFO_PATH := $(DATA_DIR)/link_info.parquet.gz
+SPEED_DATA_PATH := $(DATA_DIR)/duval_jan1_2024.parquet.gz
 
 # ── Local dev (no Docker) ─────────────────────────────────────────────────────
 run:
@@ -24,8 +30,13 @@ logs:
 migrate:
 	docker compose exec app python -m app.ingest --migrate
 
-ingest:
+ingest: data-download
 	docker compose exec app python -m app.ingest
+
+data-download:
+	mkdir -p $(DATA_DIR)
+	test -f $(LINK_INFO_PATH) || curl -fL "$(LINK_INFO_URL)" -o "$(LINK_INFO_PATH)"
+	test -f $(SPEED_DATA_PATH) || curl -fL "$(SPEED_DATA_URL)" -o "$(SPEED_DATA_PATH)"
 
 # ── Utilities ─────────────────────────────────────────────────────────────────
 shell:
