@@ -53,15 +53,39 @@ A FastAPI microservice for ingesting and querying geospatial traffic speed data 
 # Start the database and API
 make up
 
+# Download datasets (optional; `make ingest` also does this automatically)
+make data-download
+
 # Run database migrations
 make migrate
 
-# Ingest the parquet datasets
+# Ingest the parquet datasets into Postgres
 make ingest
 
 # API is available at http://localhost:8000
 # Docs at http://localhost:8000/docs
 ```
+
+## Data Files
+
+The parquet datasets are not tracked in git. They are downloaded on demand from:
+
+- `https://cdn.urbansdk.com/data-engineering-interview/link_info.parquet.gz`
+- `https://cdn.urbansdk.com/data-engineering-interview/duval_jan1_2024.parquet.gz`
+
+Use:
+
+```bash
+make data-download
+```
+
+or simply run:
+
+```bash
+make ingest
+```
+
+which will auto-download missing files before ingesting.
 
 ## API Endpoints
 
@@ -119,6 +143,9 @@ make integration-tests
 
 # Enforce 100% unit-test coverage
 make coverage
+
+# Download datasets only
+make data-download
 
 # Lint
 make lint
