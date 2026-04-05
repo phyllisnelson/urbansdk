@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches:
+      - master
+      - main
   pull_request:
-    branches: ["**"]
+    branches:
+      - master
+      - main
+  workflow_dispatch:
 
 jobs:
   lint:
