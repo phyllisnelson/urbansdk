@@ -108,8 +108,17 @@ curl "http://localhost:8000/patterns/slow_links/?period=AM+Peak&threshold=30.0&m
 ## Development
 
 ```bash
-# Run tests
+# Run all tests (unit + integration) with coverage report
 make test
+
+# Run only unit tests with coverage report
+make unit-tests
+
+# Run only integration tests
+make integration-tests
+
+# Enforce 100% unit-test coverage
+make coverage
 
 # Lint
 make lint
@@ -120,6 +129,21 @@ make format
 # View logs
 make logs
 ```
+
+## CI
+
+GitHub Actions workflow: `.github/workflows/ci.yml`
+
+- Runs on push to `master` and `main`
+- Runs on pull requests targeting `master` and `main`
+- Supports manual runs via `workflow_dispatch`
+- Executes lint checks plus unit tests with `--cov-fail-under=100`
+
+## API Collection
+
+Importable Postman collection:
+
+- `UrbanSDK_Traffic_API.postman_collection.json`
 
 ## Project Structure
 
