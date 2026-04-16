@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     link_info_filename: str = "link_info.parquet.gz"
     speed_data_filename: str = "duval_jan1_2024.parquet.gz"
 
-    model_config = {"env_file": ".env"}
+    model_config = {"env_file": ".env", "extra": "ignore"}
 
     @property
     def link_info_file(self) -> Path:

@@ -41,12 +41,12 @@ class TestGetAggregates:
         assert resp.status_code == 200
         assert link.link_id not in [r["link_id"] for r in resp.json()]
 
-    def test_accepts_period_by_id(self, client, db):
+    def test_accepts_period_by_name(self, client, db):
         link = LinkFactory()
         SpeedRecordFactory(link=link, link_id=link.link_id, timestamp=MON_AM, speed=35.0)
         db.flush()
 
-        resp = client.get("/aggregates/", params={"day": "Monday", "period": "3"})  # 3 = AM Peak
+        resp = client.get("/aggregates/", params={"day": "Monday", "period": "AM Peak"})
 
         assert resp.status_code == 200
         assert link.link_id in [r["link_id"] for r in resp.json()]

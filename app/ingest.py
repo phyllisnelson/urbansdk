@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 def _copy_speed_records(df: pd.DataFrame, db) -> None:
     """Bulk-load speed records using PostgreSQL COPY (much faster than INSERT)."""
+
     buf = io.StringIO()
     df.to_csv(buf, index=False, header=False)
     buf.seek(0)
@@ -58,8 +59,10 @@ class Ingester:
 
         out = pd.DataFrame({"link_id": df[id_col].astype(str)})
         out["road_name"] = df[name_col].where(df[name_col].notna(), None) if name_col else None
-        # Normalise geometry to GeoJSON string; PostgreSQL will parse it
 
+        # Normalise geometry to GeoJSON string; PostgreSQL will parse it
+        # and convert to internal format -
+        # this is more efficient than using Shapely to convert to WKB or WKT
         def _to_geojson(g):
             if isinstance(g, str) and g.startswith("{"):
                 return g
@@ -83,6 +86,10 @@ class Ingester:
             "COPY _links_stage (link_id, road_name, geo_json) FROM STDIN WITH (FORMAT CSV)",
             buf,
         )
+
+        # update existing records and insert new ones in one step
+        # using PostgreSQL's "ON CONFLICT" clause -
+        # this is simpler than trying to diff the input with existing data
         cursor.execute(
             """
             INSERT INTO links (link_id, road_name, geometry)

@@ -5,6 +5,7 @@ LINK_INFO_URL := https://cdn.urbansdk.com/data-engineering-interview/link_info.p
 SPEED_DATA_URL := https://cdn.urbansdk.com/data-engineering-interview/duval_jan1_2024.parquet.gz
 LINK_INFO_PATH := $(DATA_DIR)/link_info.parquet.gz
 SPEED_DATA_PATH := $(DATA_DIR)/duval_jan1_2024.parquet.gz
+NOTEBOOK := notebook.ipynb
 
 # ── Local dev (no Docker) ─────────────────────────────────────────────────────
 run:
@@ -55,6 +56,7 @@ coverage:
 	docker compose exec app pytest tests/ --ignore=tests/integration --cov=app --cov-report=term-missing --cov-fail-under=100
 
 lint:
+	docker compose exec app black app tests
 	docker compose exec app flake8 app tests
 	docker compose exec app isort --check-only app tests
 
@@ -68,4 +70,4 @@ install:
 	pip3 install -q -r requirements.local.txt
 
 notebook: install
-	$(JUPYTER) notebook notebook.ipynb
+	$(JUPYTER) notebook $(NOTEBOOK)

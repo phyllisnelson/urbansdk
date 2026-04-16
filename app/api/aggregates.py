@@ -6,7 +6,7 @@ from sqlalchemy import Time, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.database import Link, SpeedRecord, get_db
-from app.periods import resolve_day, resolve_period
+from app.enums import DayEnum, PeriodEnum
 from app.schemas import LinkAggregate, LinkDetail, SpatialFilterRequest
 
 router = APIRouter(prefix="/aggregates", tags=["aggregates"])
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/aggregates", tags=["aggregates"])
 
 def _time_filter(dow: int, start, end):
     """Build SQLAlchemy filter conditions for day-of-week and time window."""
+
     return [
         SpeedRecord.day_of_week == dow,
         cast(SpeedRecord.timestamp, Time) >= start,
@@ -23,19 +24,18 @@ def _time_filter(dow: int, start, end):
 
 @router.get("/", response_model=list[LinkAggregate])
 def get_aggregates(
-    day: str,
-    period: str,
+    day: DayEnum,
+    period: PeriodEnum,
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     """Aggregated average speed per link for the given day and time period."""
-    try:
-        start, end = resolve_period(period)
-        dow = resolve_day(day)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
 
+    start, end = period.times
+    dow = day.iso_weekday
+
+    # Join links with their speed records filtered by day and time, then aggregate.
     rows = db.execute(
         select(
             Link.link_id,
@@ -65,14 +65,18 @@ def get_aggregates(
 
 
 @router.get("/{link_id}", response_model=LinkDetail)
-def get_link_aggregate(link_id: str, day: str, period: str, db: Session = Depends(get_db)):
+def get_link_aggregate(
+    link_id: str,
+    day: DayEnum,
+    period: PeriodEnum,
+    db: Session = Depends(get_db),
+):
     """Speed and metadata for a single road segment."""
-    try:
-        start, end = resolve_period(period)
-        dow = resolve_day(day)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
 
+    start, end = period.times
+    dow = day.iso_weekday
+
+    # Query for the link with aggregated average speed and record count, filtered by day and time.
     row = db.execute(
         select(
             Link.link_id,
@@ -108,21 +112,17 @@ def spatial_filter(
     db: Session = Depends(get_db),
 ):
     """Road segments intersecting the bounding box for the given day and period."""
-    if len(body.bbox) != 4:
-        raise HTTPException(
-            status_code=422,
-            detail="bbox must have exactly 4 values: [min_lon, min_lat, max_lon, max_lat]",
-        )
 
-    try:
-        start, end = resolve_period(body.period)
-        dow = resolve_day(body.day)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
-
+    start, end = body.period.times
+    dow = body.day.iso_weekday
     min_lon, min_lat, max_lon, max_lat = body.bbox
+
+    # ST_MakeEnvelope creates a rectangular polygon from the bounding box coordinates,
+    # which we can use to filter links by spatial intersection.
     envelope = ST_MakeEnvelope(min_lon, min_lat, max_lon, max_lat, 4326)
 
+    # Join links with their speed records filtered by day, time, and spatial intersection,
+    # then aggregate.
     rows = db.execute(
         select(
             Link.link_id,

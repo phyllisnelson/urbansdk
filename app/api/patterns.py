@@ -1,12 +1,12 @@
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from geoalchemy2.functions import ST_AsGeoJSON
 from sqlalchemy import Time, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.database import Link, SpeedRecord, get_db
-from app.periods import resolve_period
+from app.enums import PeriodEnum
 from app.schemas import SlowLink
 
 router = APIRouter(prefix="/patterns", tags=["patterns"])
@@ -14,18 +14,16 @@ router = APIRouter(prefix="/patterns", tags=["patterns"])
 
 @router.get("/slow_links/", response_model=list[SlowLink])
 def slow_links(
-    period: str,
-    threshold: float,
-    min_days: int = 3,
+    period: PeriodEnum,
+    threshold: float = Query(..., ge=0),
+    min_days: int = Query(3, ge=1, le=7),
     limit: int = Query(100, ge=1, le=1000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
     """Links with average speeds below a threshold for at least min_days in a week."""
-    try:
-        start, end = resolve_period(period)
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc))
+
+    start, end = period.times
 
     # Per-day average speed per link — group by day_of_week so the composite
     # index ix_speed_records_dow_link is used for the time-window scan.
