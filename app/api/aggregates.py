@@ -30,7 +30,11 @@ def get_aggregates(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
-    """Aggregated average speed per link for the given day and time period."""
+    """
+    Returns aggregated average speed per road segment for the given day and time period.
+
+    Results are ordered by `link_id` and support pagination via `limit` and `offset`.
+    """
 
     start, end = period.times
     dow = day.iso_weekday
@@ -71,7 +75,11 @@ def get_link_aggregate(
     period: PeriodEnum,
     db: Session = Depends(get_db),
 ):
-    """Speed and metadata for a single road segment."""
+    """
+    Returns speed and metadata for a single road segment.
+
+    Returns 404 if the link does not exist or has no records for the given day and period.
+    """
 
     start, end = period.times
     dow = day.iso_weekday
@@ -111,7 +119,12 @@ def spatial_filter(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
-    """Road segments intersecting the bounding box for the given day and period."""
+    """
+    Returns road segments whose geometry intersects the given bounding box
+    for the given day and period.
+
+    `bbox` must be `[min_lon, min_lat, max_lon, max_lat]` in WGS84 (EPSG:4326).
+    """
 
     start, end = body.period.times
     dow = body.day.iso_weekday

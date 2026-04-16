@@ -20,7 +20,7 @@ A FastAPI microservice for ingesting and querying geospatial traffic speed data 
 │  POST /aggregates/spatial_filter/    bbox intersection          │
 │  GET  /patterns/slow_links/          consistently slow links    │
 │                                                                 │
-│       app/api/   app/schemas/   app/periods.py                  │
+│       app/api/   app/schemas/   app/enums.py                    │
 └───────────────────────────┬─────────────────────────────────────┘
                             │ SQLAlchemy ORM
 ┌───────────────────────────▼─────────────────────────────────────┐
@@ -132,28 +132,28 @@ curl "http://localhost:8000/patterns/slow_links/?period=AM+Peak&threshold=30.0&m
 ## Development
 
 ```bash
-# Run all tests (unit + integration) with coverage report
+# Run all tests (unit + integration) with coverage
 make test
 
-# Run only unit tests with coverage report
+# Run unit tests only (no real data required)
 make unit-tests
 
-# Run only integration tests
+# Run integration tests only (requires ingested data)
 make integration-tests
 
 # Enforce 100% unit-test coverage
 make coverage
 
-# Download datasets only
-make data-download
-
-# Lint
+# Lint (black, flake8, isort)
 make lint
 
-# Format
+# Auto-format
 make format
 
-# View logs
+# Open Jupyter notebook
+make notebook
+
+# View API logs
 make logs
 ```
 
@@ -176,17 +176,17 @@ Importable Postman collection:
 
 ```
 app/
-├── api/            # Route handlers (views)
+├── api/            # Route handlers
 ├── database/       # ORM models and connection
-├── schemas/        # Pydantic response schemas
-├── constants.py    # Time period definitions
-├── ingest.py       # Parquet data ingestion
+├── schemas/        # Pydantic request/response schemas
+├── enums.py        # PeriodEnum and DayEnum with embedded time ranges
+├── ingest.py       # Parquet data ingestion (PostgreSQL COPY)
 ├── main.py         # FastAPI app entrypoint
-├── periods.py      # Period/day resolution helpers
-└── settings.py     # Environment config
+└── settings.py     # Environment config (pydantic-settings)
 tests/
-├── integration/    # End-to-end tests against real data
-├── factories.py    # Test data factories
-├── conftest.py     # Shared fixtures
-└── test_*.py       # Unit tests
+├── integration/    # End-to-end tests against real ingested data
+├── factories.py    # factory-boy model factories
+├── timestamps.py   # Shared test timestamp helpers
+├── conftest.py     # Session/db/client fixtures
+└── test_*.py       # Unit tests per endpoint/module
 ```

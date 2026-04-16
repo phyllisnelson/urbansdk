@@ -21,7 +21,13 @@ def slow_links(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ):
-    """Links with average speeds below a threshold for at least min_days in a week."""
+    """
+    Returns road segments with average speeds below `threshold`
+    for at least `min_days` days in a week.
+
+    - `threshold` — speed in mph below which a link is considered slow
+    - `min_days` — minimum number of days (1–7) the link must be slow to be included
+    """
 
     start, end = period.times
 
